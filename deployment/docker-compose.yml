@@ -1,0 +1,79 @@
+services:
+  postgres:
+    build:
+      context: postgres
+    container_name: camunda-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - application
+
+
+
+  tomcat-app:
+    build:
+      context: tomcat-app
+    restart: unless-stopped
+    volumes:
+      - ./artifact/tomcat-app/webapps:/usr/local/tomcat/webapps
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - public
+      - application
+  tomcat-int:
+    build:
+      context: tomcat-int
+    restart: unless-stopped
+    volumes:
+      - ./artifact/tomcat-int/webapps:/usr/local/tomcat/webapps
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - integration
+      - application
+
+  nginx-ingress:
+    build:
+      context: nginx-ingress
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-90}:80"
+    volumes:
+      # folder with vuejs app
+      - ./artifact/nginx/front:/usr/share/nginx/front:ro
+    networks:
+      - public
+      - application
+
+  nginx-gateway:
+    build:
+      context: nginx-gateway
+    container_name: nginx-gateway
+    restart: unless-stopped
+    networks:
+      - application
+      - integration
+
+networks:
+  public:
+    driver: bridge
+  front:
+    internal: true
+  application:
+    internal: true
+  integration:
+    driver: bridge
