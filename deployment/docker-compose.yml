@@ -36,9 +36,11 @@ services:
       context: tomcat-int
     restart: unless-stopped
     volumes:
-      - ./artifact/tomcat-int/webapps:/usr/local/tomcat/webapps
+      - ../artifact/proxy/:/usr/local/tomcat/webapps/
+    ports:
+      - "9080:8080"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/" ]
+      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/image-adapter" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -64,6 +66,8 @@ services:
       context: nginx-gateway
     container_name: nginx-gateway
     restart: unless-stopped
+    ports:
+      - "9081:80"
     networks:
       - application
       - integration

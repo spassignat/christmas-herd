@@ -18,7 +18,7 @@
         <postgresql.version>42.7.4</postgresql.version>
         <httpclient5.version>5.4.1</httpclient5.version>
         <tomcat.webapps.dir>${artifact.dir}</tomcat.webapps.dir>
-        <artifact.dir>${project.basedir}/../artifact/proxy</artifact.dir>
+        <artifact.dir>${project.basedir}/../artifact/back</artifact.dir>
     </properties>
 
     <dependencies>
@@ -79,6 +79,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
