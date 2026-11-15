@@ -7,13 +7,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="shared-api" />
+        <module name="christmas-app" />
         <module name="image-adapter" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="camunda" target="21" />
       <module name="camunda (1)" target="21" />
-      <module name="christmas-app" target="21" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

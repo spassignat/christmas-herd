@@ -1,6 +1,6 @@
 package eu.stephane.placekitten;
 
-import eu.stephane.client.JerseyHttpClient;
+import eu.stephane.camunda.JerseyHttpClient;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;

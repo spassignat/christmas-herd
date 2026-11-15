@@ -54,7 +54,7 @@ services:
       - "${NGINX_HTTP_PORT:-90}:80"
     volumes:
       # folder with vuejs app
-      - ./artifact/nginx/front:/usr/share/nginx/front:ro
+      - ../artifact/front:/app/front/:ro
     networks:
       - public
       - application

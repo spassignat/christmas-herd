@@ -1,6 +1,7 @@
 package eu.stephane.service;
 
-import eu.stephane.client.JerseyHttpClient;
+
+import eu.stephane.camunda.JerseyHttpClient;
 
 import java.net.URI;
 

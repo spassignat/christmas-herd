@@ -17,35 +17,35 @@
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <postgresql.version>42.7.4</postgresql.version>
         <httpclient5.version>5.4.1</httpclient5.version>
-
-        <artifact.dir>${project.basedir}/../deployment/artifact/tomcat-app
-        </artifact.dir>
-        <tomcat.webapps.dir>${artifact.dir}/tomcat-app/webapps
-        </tomcat.webapps.dir>
+        <tomcat.webapps.dir>${artifact.dir}</tomcat.webapps.dir>
+        <artifact.dir>${project.basedir}/../artifact/proxy</artifact.dir>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.connectors</groupId>
             <artifactId>jersey-jnh-connector</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -60,14 +60,26 @@
             <version>${jakarta.servlet.version}</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.stephane</groupId>
+            <artifactId>shared-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <build>
-
         <finalName>${project.artifactId}</finalName>
-
         <plugins>
-
+            <!-- *IT integration tests (configuration: parent pom) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -88,33 +100,26 @@
                 </configuration>
             </plugin>
 
+
+            <!-- mvn clean also removes the WAR from deployment/artifact/tomcat-int/webapps -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
-                <executions>
-                    <execution>
-                        <id>copy-front-to-nginx</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${nginx.front.dir}
-                            </outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/../front
-                                    </directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${tomcat.webapps.dir}</directory>
+                            <includes>
+                                <include>${project.build.finalName}.war
+                                </include>
+                                <!-- directory exploded by Tomcat -->
+                                <include>${project.build.finalName}/**</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
-
-
         </plugins>
     </build>
 
