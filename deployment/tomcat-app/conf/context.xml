@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+    <WatchedResource>WEB-INF/tomcat-web.xml</WatchedResource>
+    <WatchedResource>${catalina.base}/conf/web.xml</WatchedResource>
+
+    <Resource name="jdbc/christmas"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="org.postgresql.Driver"
+              url="jdbc:postgresql://postgres:5432/${POSTGRES_DB}"
+              username="${POSTGRES_USER}"
+              password="${POSTGRES_PASSWORD}"
+              maxTotal="10"
+              maxIdle="2"
+              maxWaitMillis="5000"
+              validationQuery="SELECT 1"
+              testOnBorrow="true"/>
+</Context>

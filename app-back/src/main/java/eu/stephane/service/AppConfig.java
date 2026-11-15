@@ -1,33 +1,22 @@
 package eu.stephane.service;
 
-
-import eu.stephane.camunda.JerseyHttpClient;
-
 import java.net.URI;
 
-public record AppConfig(URI backendUrl,
-
-                        String imagesUrl,
-                        String imageContentUrl) {
-
-
-    public AppConfig {
-
-    }
+public record AppConfig(URI gatewayUrl, String dataSourceName, int maxCount) {
 
     public static AppConfig fromEnvironment() {
-        final String imagesUrl1 = getEnv("IMAGES_URL", "IMAGES_URL not set");
-        final String imageContentUrl1 = getEnv("IMAGE_CONTENT_URL", "IMAGE_CONTENT_URL not set");
-        final String backendUrl1 = getEnv("BACKEND_URL", "BACKEND_URL not set");
+        final URI gatewayUrl1 = URI.create(trimSlash(getEnv("GATEWAY_URL", "http://nginx-gateway")));
+        final String datasourceJndi = getEnv("DATASOURCE_JNDI", "java:comp/env/jdbc/christmas");
+        final int maxImagesPerRequest = Integer.parseInt(getEnv("MAX_IMAGES_PER_REQUEST", "20"));
         return new AppConfig(
-                URI.create(backendUrl1),
-                imagesUrl1,
-                imageContentUrl1
+                gatewayUrl1,
+                datasourceJndi,
+                maxImagesPerRequest
         );
     }
 
-    public JerseyHttpClient httpClient() {
-        return new JerseyHttpClient();
+    private static String trimSlash(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
     private static String getEnv(String name, String defaultValue) {

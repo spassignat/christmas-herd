@@ -24,6 +24,18 @@ services:
     build:
       context: tomcat-app
     restart: unless-stopped
+    environment:
+      # ${...} of conf/context.xml are read from the environment
+      JAVA_OPTS: -Dorg.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      GATEWAY_URL: http://nginx-gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nginx-gateway:
+        condition: service_started
     volumes:
       # app-back.war (built by maven into ../artifact/back)
       - ../artifact/back/:/usr/local/tomcat/webapps/
@@ -31,7 +43,7 @@ services:
       # direct access for dev (vite reverse proxy /api)
       - "9082:8080"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/" ]
+      test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/app-back/api/images" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -64,6 +76,8 @@ services:
     volumes:
       # folder with vuejs app
       - ../artifact/front:/app/front/:ro
+    depends_on:
+      - tomcat-app
     networks:
       - public
       - application

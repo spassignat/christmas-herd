@@ -29,7 +29,7 @@ public class NotFoundResource implements AnimalResource {
      * Downloads an image from cataas and returns it as is.
      */
     @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces({"image/*", MediaType.APPLICATION_OCTET_STREAM})
     public Response image() {
         try {
             return CLIENT.get(SOURCE, "image/*", response -> {

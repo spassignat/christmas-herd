@@ -7,6 +7,6 @@ import jakarta.ws.rs.core.Response;
 
 public interface AnimalResource {
     @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces({"image/*", MediaType.APPLICATION_OCTET_STREAM})
     Response image();
 }

@@ -29,7 +29,7 @@ public class PlaceKittenResource implements AnimalResource {
      * Downloads an image from placekitten and returns it as is.
      */
     @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces({"image/*", MediaType.APPLICATION_OCTET_STREAM})
     @Override
     public Response image() {
         try {
