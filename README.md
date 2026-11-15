@@ -231,4 +231,13 @@ This is adjustable in vite.confi.js.
 ```shell
 mvn verify
 ```
- 
+## Missing elements
+Dog images are not supported on purpose. The application is designed to 
+be "plug 'n play". To support a new backend server:
+1. Create an AnimalResource for Dog image server. You may start with a copy of cataas package
+2. register this new class into src/main/resources/META-INF/services/eu.stephane.AnimalResource
+3. create a configuration for the nginx-gateway server, either copying the cat files (or using claude). Claude.ai has a declared agent which should handle your request.
+
+*note*: some servers requires several interactions to fetch an image. It's 
+recommended to create a dedicated librairy. Including it into the classpath
+makes it available to the application without more effort.
