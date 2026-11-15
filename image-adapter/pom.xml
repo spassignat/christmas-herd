@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>eu.stephane</groupId>
+        <artifactId>camunda-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+     <artifactId>image-adapter</artifactId>
+    <packaging>war</packaging>
+
+    <properties>
+        <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+        <postgresql.version>42.7.4</postgresql.version>
+        <httpclient5.version>5.4.1</httpclient5.version>
+
+        <!-- Artifacts volume-mounted into the containers (deployment/artifact):
+             not copied into the images, and no rebuild when they change -->
+        <artifact.dir>${project.basedir}/../deployment/artifact</artifact.dir>
+        <!-- Tomcat webapps: the WAR is built directly there (maven-war-plugin) -->
+        <tomcat.webapps.dir>${artifact.dir}/tomcat/webapps</tomcat.webapps.dir>
+        <!-- Vue front end served by nginx (location /front/) -->
+        <nginx.front.dir>${artifact.dir}/nginx/front</nginx.front.dir>
+
+        <!-- Integration tests: docker compose stack started/stopped around the *IT tests -->
+        <deployment.dir>${project.basedir}/../deployment</deployment.dir>
+        <!-- -Dit.stack.keep: keeps the stack running after the tests -->
+        <it.stack.keep>false</it.stack.keep>
+    </properties>
+
+    <dependencies>
+       <!-- ===== JAX-RS: API ===== -->
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
+
+        <!-- ===== JAX-RS: server implementation (Tomcat does not provide one) ===== -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+        </dependency>
+
+        <!-- ===== REST client (JAX-RS client API, Jersey implementation) ===== -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+        </dependency>
+
+        <!-- java.net.http.HttpClient connector: HTTP/2 support for the client -->
+        <dependency>
+            <groupId>org.glassfish.jersey.connectors</groupId>
+            <artifactId>jersey-jnh-connector</artifactId>
+        </dependency>
+
+        <!-- JSON serialization (server and client) -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+        </dependency>
+
+        <!-- ===== Apache HttpClient 5: second implementation of SimpleHttpClient (HTTP_CLIENT=apache) ===== -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${httpclient5.version}</version>
+        </dependency>
+
+        <!-- ===== PostgreSQL JDBC driver ===== -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <!-- Provided by Tomcat (tomcat/lib, Docker image): required by the JNDI pool -->
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Servlet API provided by Tomcat -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ===== Tests ===== -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.stephane</groupId>
+            <artifactId>shared-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Standard Maven layout:
+             src/main/java, src/main/webapp (WEB-INF/web.xml), src/test/java.
+             Compiler, tests (surefire, failsafe) and enforcer: parent pom -->
+        <finalName>${project.artifactId}</finalName>
+
+        <plugins>
+            <!-- *IT integration tests (configuration: parent pom) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <!-- WAR built directly into the webapps directory mounted by Tomcat (hot redeployment) -->
+                    <outputDirectory>${tomcat.webapps.dir}</outputDirectory>
+                    <failOnMissingWebXml>true</failOnMissingWebXml>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.artifactId}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Vue front end: copied into the directory mounted by nginx -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-front-to-nginx</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${nginx.front.dir}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../front</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- mvn clean also empties deployment/artifact (the mounted directories and their .gitkeep remain) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${tomcat.webapps.dir}</directory>
+                            <includes>
+                                <include>${project.build.finalName}.war</include>
+                                <!-- directory exploded by Tomcat -->
+                                <include>${project.build.finalName}/**</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>${nginx.front.dir}</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <excludes>
+                                <exclude>.gitkeep</exclude>
+                            </excludes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Active by default; disabled by -DskipITs (stack not started, integration tests skipped) -->
+        <profile>
+            <id>it-stack</id>
+            <activation>
+                <property>
+                    <name>!skipITs</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Integration test phases around failsafe:
+                         pre-integration-test  : docker compose up (with docker-compose.test.yml: host access to PostgreSQL and api-gateway) (images rebuilt with the packaged WAR),
+                                                 waits until the services are ready (healthchecks)
+                         integration-test      : failsafe runs the *IT tests against the stack
+                         post-integration-test : docker compose down (unless -Dit.stack.keep)
+                         verify                : failsafe fails the build if an *IT test failed -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <configuration>
+                            <executable>docker</executable>
+                            <workingDirectory>${deployment.dir}</workingDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>it-stack-up</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>
+                                        <argument>compose</argument>
+                                        <argument>-f</argument>
+                                        <argument>docker-compose.yml</argument>
+                                        <argument>-f</argument>
+                                        <argument>docker-compose.test.yml</argument>
+                                        <argument>up</argument>
+                                        <argument>--detach</argument>
+                                        <argument>--build</argument>
+                                        <argument>--wait</argument>
+                                        <argument>--wait-timeout</argument>
+                                        <argument>300</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>it-stack-down</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${it.stack.keep}</skip>
+                                    <arguments>
+                                        <argument>compose</argument>
+                                        <argument>-f</argument>
+                                        <argument>docker-compose.yml</argument>
+                                        <argument>-f</argument>
+                                        <argument>docker-compose.test.yml</argument>
+                                        <argument>down</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
