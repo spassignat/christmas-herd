@@ -1,5 +1,6 @@
 package eu.stephane.placekitten;
 
+import eu.stephane.AnimalResource;
 import eu.stephane.camunda.JerseyHttpClient;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -15,7 +16,7 @@ import java.net.URI;
 
 
 @Path("images/placekitten")
-public class PlaceKittenResource {
+public class PlaceKittenResource implements AnimalResource {
 
     private static final URI SOURCE = URI.create("https://placekitten.com/400/300");
 
@@ -29,6 +30,7 @@ public class PlaceKittenResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Override
     public Response image() {
         try {
             return CLIENT.get(SOURCE, "image/*", response -> {

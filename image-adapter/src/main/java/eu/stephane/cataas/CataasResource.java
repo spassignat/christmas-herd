@@ -1,6 +1,7 @@
 package eu.stephane.cataas;
 
 import eu.stephane.camunda.JerseyHttpClient;
+import eu.stephane.AnimalResource;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -15,7 +16,7 @@ import java.net.URI;
 
 
 @Path("images/cataas")
-public class CataasResource {
+public class CataasResource implements AnimalResource {
 
     private static final URI SOURCE = URI.create("https://cataas.com/cat");
 
