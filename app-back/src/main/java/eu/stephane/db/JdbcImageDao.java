@@ -13,11 +13,11 @@ import java.time.ZoneOffset;
 import java.util.*;
 
 public class JdbcImageDao implements ImageDao {
-    private static final String COLUMNS = "uuid, imported_at, backend, animal_type,content,size";
+    private static final String COLUMNS = "uuid, imported_at, backend, animal_type, content, size";
 
     private static final String INSERT =
             "INSERT INTO image (" + COLUMNS + ")"
-                    + " VALUES (?, ?, ?, ?, ?)";
+                    + " VALUES (?, ?, ?, ?, ?, ?)";
     private static final String SELECT_BY_UUID = "SELECT " + COLUMNS + " FROM image WHERE uuid = ?";
 
     private static final String SELECT_ALL = "SELECT " + COLUMNS + " FROM image ORDER BY imported_at, uuid";
