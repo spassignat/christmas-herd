@@ -11,9 +11,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,13 +55,29 @@ public class ImageResource {
         }
     }
 
-    /** the content type is not stored: guessed from the first bytes (jpeg, png, gif...) */
-    private static String contentType(byte[] content) {
-        try {
-            String type = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(content));
-            return type == null ? MediaType.APPLICATION_OCTET_STREAM : type;
-        } catch (IOException e) {
-            return MediaType.APPLICATION_OCTET_STREAM;
+    /**
+     * the content type is not stored: guessed from the magic number of the image
+     * (URLConnection.guessContentTypeFromStream misses some jpeg, e.g. FF D8 FF DB)
+     */
+    static String contentType(byte[] c) {
+        if (startsWith(c, 0xFF, 0xD8, 0xFF)) {
+            return "image/jpeg";
         }
+        if (startsWith(c, 0x89, 'P', 'N', 'G')) {
+            return "image/png";
+        }
+        return MediaType.APPLICATION_OCTET_STREAM;
+    }
+
+    private static boolean startsWith(byte[] content, int... prefix) {
+        if (content == null || content.length < prefix.length) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length; i++) {
+            if ((content[i] & 0xFF) != prefix[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

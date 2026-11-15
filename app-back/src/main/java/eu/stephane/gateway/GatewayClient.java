@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
 
 /**
  * Client of nginx-gateway: one image of an animal per call on {@code <gatewayUrl>/proxy/<animal>}
- * (round robin + failover between the backends of this animal).
+ * (round robin + failover between the backends of this animal), or directly on an image-adapter resource
+ * (local dev, see {@link eu.stephane.service.AppConfig#imageUrl()}).
  *
  * AI generated
  */
@@ -25,11 +26,12 @@ public class GatewayClient {
     /** upstreams are unix sockets named after the resource: unix:/run/nginx/cat-cataas.sock */
     private static final Pattern SOCKET_NAME = Pattern.compile("([\\w-]+)\\.sock\\s*$");
 
-    private final URI gatewayUrl;
+    /** URL of an image, {@code {animal}} is replaced by the animal */
+    private final String imageUrl;
     private final JerseyHttpClient client = new JerseyHttpClient();
 
-    public GatewayClient(URI gatewayUrl) {
-        this.gatewayUrl = gatewayUrl;
+    public GatewayClient(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     /** image downloaded from the gateway; {@code backend} is the resource which served it */
@@ -52,7 +54,7 @@ public class GatewayClient {
 
     public Image fetch(AnimalType animalType) {
         String animal = animalType.name().toLowerCase(Locale.ROOT);
-        URI uri = URI.create(gatewayUrl + "/proxy/" + animal);
+        URI uri = URI.create(imageUrl.replace("{animal}", animal));
         try {
             return client.get(uri, "image/*", response -> {
                 if (response.getStatus() == 404) {
@@ -61,7 +63,7 @@ public class GatewayClient {
                 if (response.getStatus() != 200) {
                     throw new GatewayException("gateway answered " + response.getStatus() + " on " + uri, null);
                 }
-                return new Image(backend(response, animal), readAll(response));
+                return new Image(backend(response, uri), readAll(response));
             });
         } catch (UnknownAnimalException | GatewayException e) {
             throw e;
@@ -70,7 +72,8 @@ public class GatewayClient {
         }
     }
 
-    private static String backend(Response response, String animal) {
+    /** name of the backend: from the gateway header, else the last segment of the URL */
+    private static String backend(Response response, URI uri) {
         String upstream = response.getHeaderString(UPSTREAM_HEADER);
         if (upstream != null) {
             Matcher m = SOCKET_NAME.matcher(upstream);
@@ -78,7 +81,8 @@ public class GatewayClient {
                 return m.group(1);
             }
         }
-        return animal;
+        String path = uri.getPath();
+        return path.substring(path.lastIndexOf('/') + 1);
     }
 
     private static byte[] readAll(Response response) {

@@ -25,8 +25,10 @@ services:
       context: tomcat-app
     restart: unless-stopped
     environment:
-      # ${...} of conf/context.xml are read from the environment
+      # ${...} of app-back META-INF/context.xml are read from the environment
       JAVA_OPTS: -Dorg.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -40,16 +42,16 @@ services:
       # app-back.war (built by maven into ../artifact/back)
       - ../artifact/back/:/usr/local/tomcat/webapps/
     ports:
-      # direct access for dev (vite reverse proxy /api)
-      - "9082:8080"
+      # direct access to app-back (9082 is left to the local "App Back" Tomcat, see README)
+      - "9083:8080"
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/app-back/api/images" ]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - public
       - application
+      - developer
   tomcat-int:
     build:
       context: tomcat-int
@@ -102,6 +104,7 @@ networks:
     internal: true
   integration:
     driver: bridge
+  # host access to postgres (port 4444) for local dev; must not be internal, or the port is not published
   developer:
     driver: bridge
 

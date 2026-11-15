@@ -27,7 +27,7 @@ public class RestApplication extends ResourceConfig {
 
         AppConfig config = AppConfig.fromEnvironment();
         ImageDao dao = new JdbcImageDao(lookup(config.dataSourceName()));
-        GatewayClient gateway = new GatewayClient(config.gatewayUrl());
+        GatewayClient gateway = new GatewayClient(config.imageUrl());
         register(new AbstractBinder() {
             @Override
             protected void configure() {

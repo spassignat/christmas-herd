@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Context of app-back. ${...} are resolved by Tomcat from:
+     - system properties (-DPOSTGRES_HOST=...), by default;
+     - environment variables, with
+       -Dorg.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource
+     An undefined variable is left as is (${...}): the error only shows at the first connection.
+     The postgresql driver must be in the Tomcat lib directory. -->
+<Context>
+    <Resource name="jdbc/christmas"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="org.postgresql.Driver"
+              url="jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+              username="${POSTGRES_USER}"
+              password="${POSTGRES_PASSWORD}"
+              maxTotal="10"
+              maxIdle="2"
+              maxWaitMillis="5000"
+              validationQuery="SELECT 1"
+              testOnBorrow="true"/>
+</Context>

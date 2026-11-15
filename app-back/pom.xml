@@ -50,8 +50,8 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-            <!-- Provided by Tomcat (tomcat/lib, Docker image): required by the JNDI pool -->
-            <scope>provided</scope>
+            <!-- shipped in the war (WEB-INF/lib), with the datasource of META-INF/context.xml:
+                 nothing to add to the Tomcat lib -->
         </dependency>
 
         <dependency>
