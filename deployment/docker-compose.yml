@@ -25,7 +25,11 @@ services:
       context: tomcat-app
     restart: unless-stopped
     volumes:
-      - ./artifact/tomcat-app/webapps:/usr/local/tomcat/webapps
+      # app-back.war (built by maven into ../artifact/back)
+      - ../artifact/back/:/usr/local/tomcat/webapps/
+    ports:
+      # direct access for dev (vite reverse proxy /api)
+      - "9082:8080"
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf -o /dev/null http://localhost:8080/" ]
       interval: 5s
