@@ -10,7 +10,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>christmas-app</artifactId>
+    <artifactId>app-back</artifactId>
     <packaging>war</packaging>
 
     <properties>
