@@ -45,7 +45,7 @@ is to add the failover/round robin
 
 | Method | URL                        | Description                                                                                                                                                                 |
 |--------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `POST` | `/api/animals/requests`    | Body `{"animalType": "CAT", "count": 3}`. Downloads and stores `count` images (1 to 20). `400` if no backend exists for this animal, `502` if the gateway returns no image. |
+| `POST` | `/api/animals/requests`    | Body `{"animalType": "CAT", "count": 3}`. Downloads and stores `count` images (1 to 100, `MAX_IMAGES_PER_REQUEST`). `400` if no backend exists for this animal, `502` if the gateway returns no image. |
 | `GET`  | `/api/images`              | Stored images: `id`, `createdAt`, `source` (backend which served the image), `animalType`, `size`.                                                                          |
 | `GET`  | `/api/images/{id}/content` | Content of an image.                                                                                                                                                        |
 

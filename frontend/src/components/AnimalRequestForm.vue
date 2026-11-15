@@ -3,12 +3,12 @@
     <el-form inline @submit.prevent="submit">
       <el-form-item label="Animal">
         <el-select v-model="animalType" style="width: 120px">
-          <el-option label="dog" value="DOG" />
           <el-option label="cat" value="CAT" />
+          <el-option label="dog" value="DOG" />
         </el-select>
       </el-form-item>
       <el-form-item label="Count">
-        <el-input-number v-model="count" :min="1" />
+        <el-input-number v-model="count" :min="1" :max="100" />
       </el-form-item>
       <el-button type="primary" native-type="submit" :loading="sending">Send</el-button>
     </el-form>
@@ -25,7 +25,7 @@ export default {
   name: 'AnimalRequestForm',
   emits: ['submitted'],
   data () {
-    return { animalType: 'DOG', count: 1, sending: false, messageIndex: 0 }
+    return { animalType: 'CAT', count: 1, sending: false, messageIndex: 0 }
   },
   computed: {
     message () {

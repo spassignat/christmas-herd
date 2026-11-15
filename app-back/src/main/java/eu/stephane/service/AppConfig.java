@@ -12,7 +12,7 @@ public record AppConfig(String imageUrl, String dataSourceName, int maxCount) {
         final String gatewayUrl = trimSlash(getEnv("GATEWAY_URL", "http://nginx-gateway"));
         final String imageUrl = getEnv("IMAGE_URL", gatewayUrl + "/proxy/{animal}");
         final String datasourceJndi = getEnv("DATASOURCE_JNDI", "java:comp/env/jdbc/christmas");
-        final int maxImagesPerRequest = Integer.parseInt(getEnv("MAX_IMAGES_PER_REQUEST", "20"));
+        final int maxImagesPerRequest = Integer.parseInt(getEnv("MAX_IMAGES_PER_REQUEST", "100"));
         return new AppConfig(
                 imageUrl,
                 datasourceJndi,
